@@ -1,0 +1,486 @@
+C51 COMPILER V9.60.0.0   MAIN                                                              06/12/2021 18:11:41 PAGE 1   
+
+
+C51 COMPILER V9.60.0.0, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN .\Objects\main.obj
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE main.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listings\main
+                    -.lst) TABS(2) OBJECT(.\Objects\main.obj)
+
+line level    source
+
+   1          #include<reg52.h>
+   2          #include <intrins.h>
+   3          #include<stdio.h>
+   4          #include<stdlib.h>
+   5          
+   6          sbit P3_7 = P3 ^ 7;
+   7          
+   8          sbit rs = P3^0;  //RS pin connected to pin 2 of port 3
+   9          sbit rw = P3^1;  // RW pin connected to pin 3 of port 3
+  10          sbit e =  P3^2;  //E pin connected to pin 4 of port 3
+  11          
+  12          sbit C4 = P1^0;     // Connecting keypad to Port 1
+  13          sbit C3 = P1^1;
+  14          sbit C2 = P1^2;
+  15          sbit C1 = P1^3;
+  16          sbit R4 = P1^4;
+  17          sbit R3 = P1^5;
+  18          sbit R2 = P1^6;
+  19          sbit R1 = P1^7;
+  20          
+  21          sbit switch_library = P2 ^ 4;
+  22          sbit switch_metronome = P2 ^ 1;
+  23          sbit switch_tanpura = P2 ^ 2;
+  24          sbit switch_keyboard = P2 ^ 3;
+  25          
+  26          #define display_port P0      //Data pins connected to port 2 on microcontroller
+  27          #define pitch_P   0
+  28          #define pitch_C5 64655
+  29          #define pitch_Db5 64705
+  30          #define pitch_D5 64751
+  31          #define pitch_Eb5 64795
+  32          #define pitch_E5 64837
+  33          #define pitch_F5 64876
+  34          #define pitch_Gb5 64913
+  35          #define pitch_G5 64948
+  36          #define pitch_Ab5 64981
+  37          #define pitch_A5 65012
+  38          #define pitch_Bb5 65042
+  39          #define pitch_B5 65069
+  40          #define pitch_C6 65096
+  41          #define pitch_Db6 65120
+  42          #define pitch_D6 65144
+  43          #define pitch_Eb6 65166
+  44          #define pitch_E6 65186
+  45          #define pitch_F6 65206
+  46          #define pitch_Gb6 65225
+  47          #define pitch_G6 65242
+  48          #define pitch_Ab6 65259
+  49          #define pitch_A6 65274
+  50          #define pitch_Bb6 65289
+  51          #define pitch_B6 65303
+  52          
+  53          #define MelodyPin P3_7
+  54          
+C51 COMPILER V9.60.0.0   MAIN                                                              06/12/2021 18:11:41 PAGE 2   
+
+  55          unsigned int qtrN, wholeN, halfN, eighthN,sixteenN, thirtyTwoN,sixtyFourN,sixN,twelveN,twentyFourN;
+  56          unsigned int flag_keyboard=0;
+  57          unsigned int index=0,metro=0;
+  58          char tempo[3]={0};
+  59          
+  60          void Delay10MC(unsigned char);
+  61          
+  62          void T2ISR(void) interrupt 5 {
+  63   1        MelodyPin = ~MelodyPin;
+  64   1        TF2 = 0;
+  65   1      }
+  66          
+  67          void MelodyTempo(int Tempo){
+  68   1        qtrN = ((60000/Tempo));
+  69   1        wholeN = qtrN*4;
+  70   1        halfN = (qtrN*2);
+  71   1        eighthN = (qtrN/2);
+  72   1        sixteenN = (qtrN/4);
+  73   1        thirtyTwoN = (qtrN/8);
+  74   1        sixtyFourN = (qtrN/16);
+  75   1        sixN = (wholeN/6);
+  76   1        twelveN = (wholeN/12);
+  77   1        twentyFourN = (wholeN/24);
+  78   1      }
+  79          
+  80          void PlayNote(const unsigned char PitchH, const unsigned char PitchL){
+  81   1        RCAP2H = PitchH;
+  82   1        RCAP2L = PitchL;
+  83   1        TH2 = PitchH;
+  84   1        TL2 = PitchL;
+  85   1        TF2 = 0;
+  86   1        TR2 = 1;
+  87   1        ET2 = 1;
+  88   1        EA = 1;
+  89   1      }
+  90          
+  91          void EndNote(void){
+  92   1        EA = 0;
+  93   1        TR2 = 0;
+  94   1        TF2 = 0;
+  95   1        MelodyPin = 1;
+  96   1      }
+  97          
+  98          void delay_ms(unsigned int ms){
+  99   1        for(;ms>0;ms--)
+ 100   1          Delay10MC(100);
+ 101   1      }
+ 102          
+ 103          void Melodyplay(const int Pitch, unsigned int interval){
+ 104   1        if(Pitch!=0)
+ 105   1          PlayNote(Pitch >> 8, Pitch);
+ 106   1        delay_ms(interval);
+ 107   1        EndNote();
+ 108   1      }
+ 109          
+ 110          void Saregama(){
+ 111   1        MelodyTempo(240);
+ 112   1        Melodyplay(pitch_Db5, qtrN);
+ 113   1        Melodyplay(pitch_Eb5, qtrN);
+ 114   1        Melodyplay(pitch_F5, qtrN);
+ 115   1        Melodyplay(pitch_Gb5, qtrN);
+ 116   1        Melodyplay(pitch_Ab5, qtrN);
+C51 COMPILER V9.60.0.0   MAIN                                                              06/12/2021 18:11:41 PAGE 3   
+
+ 117   1        Melodyplay(pitch_Bb5, qtrN);
+ 118   1        Melodyplay(pitch_C6, qtrN);
+ 119   1        Melodyplay(pitch_Db6, qtrN);
+ 120   1        Melodyplay(pitch_P, wholeN);
+ 121   1        Melodyplay(pitch_Db6, qtrN);
+ 122   1        Melodyplay(pitch_C6, qtrN);
+ 123   1        Melodyplay(pitch_Bb5, qtrN);
+ 124   1        Melodyplay(pitch_Ab5, qtrN);
+ 125   1        Melodyplay(pitch_Gb5, qtrN);
+ 126   1        Melodyplay(pitch_F5, qtrN);
+ 127   1        Melodyplay(pitch_Eb5, qtrN);
+ 128   1        Melodyplay(pitch_Db5, qtrN);
+ 129   1      }
+ 130          
+ 131          void tanpura(){
+ 132   1        //MelodyTempo(120);
+ 133   1        Melodyplay(pitch_C6, 500);
+ 134   1        Melodyplay(pitch_G6, 500);
+ 135   1        Melodyplay(pitch_C5, 500);
+ 136   1        Melodyplay(pitch_P, 500);
+ 137   1      }
+ 138          
+ 139          void lcd_cmd(unsigned char command)  //Function to send command instruction to LCD
+ 140          {
+ 141   1          display_port = command;
+ 142   1          rs= 0;
+ 143   1          rw=0;
+ 144   1          e=1;
+ 145   1          delay_ms(20);
+ 146   1          e=0;
+ 147   1      }
+ 148          
+ 149          void lcd_data(unsigned char disp_data)  //Function to send display data to LCD
+ 150          {
+ 151   1          display_port = disp_data;
+ 152   1          rs= 1;
+ 153   1          rw=0;
+ 154   1          e=1;
+ 155   1          delay_ms(20);
+ 156   1          e=0;
+ 157   1      }
+ 158          
+ 159           void lcd_init()    //Function to prepare the LCD  and get it ready
+ 160          {
+ 161   1          lcd_cmd(0x38);  // for using 2 lines and 5X7 matrix of LCD
+ 162   1          delay_ms(10);
+ 163   1          lcd_cmd(0x0F);  // turn display ON, cursor blinking
+ 164   1          delay_ms(10);
+ 165   1          lcd_cmd(0x01);  //clear screen
+ 166   1          delay_ms(10);
+ 167   1          lcd_cmd(0x80);  // bring cursor to position 1 of line 1
+ 168   1          delay_ms(10);
+ 169   1      }
+ 170          
+ 171          void row_finder1() //Function for finding the row for column 1
+ 172          {
+ 173   1      R1=R2=R3=R4=1;
+ 174   1      C1=C2=C3=C4=0;
+ 175   1      
+ 176   1      if(R1==0 && flag_keyboard==0)
+ 177   1      {
+ 178   2        lcd_data('1');//7
+C51 COMPILER V9.60.0.0   MAIN                                                              06/12/2021 18:11:41 PAGE 4   
+
+ 179   2        tempo[index]='1';//7
+ 180   2        index++;
+ 181   2      }
+ 182   1      if(R1==0 && flag_keyboard==1)
+ 183   1        Melodyplay(pitch_C5, 250);
+ 184   1      if(R2==0 && flag_keyboard==0)
+ 185   1      {
+ 186   2        lcd_data('5');//4
+ 187   2        tempo[index]='5';
+ 188   2        index++;
+ 189   2      }
+ 190   1      if(R2==0 && flag_keyboard==1)
+ 191   1      {
+ 192   2        Melodyplay(pitch_E5, 250);
+ 193   2      }
+ 194   1      if(R3==0 && flag_keyboard==0)
+ 195   1      {
+ 196   2        lcd_data('9');//1
+ 197   2        tempo[index]='9';
+ 198   2        index++;
+ 199   2      }
+ 200   1      if(R3==0 && flag_keyboard==1)
+ 201   1      {
+ 202   2        Melodyplay(pitch_Ab5, 250);
+ 203   2      }
+ 204   1      //if(R4==0 && flag_keyboard==0)
+ 205   1      //lcd_data('O');
+ 206   1      if(R4==0 && flag_keyboard==1)
+ 207   1      {
+ 208   2        Melodyplay(pitch_C6, 250);
+ 209   2      }
+ 210   1      }
+ 211          
+ 212          void row_finder2() //Function for finding the row for column 2
+ 213          {
+ 214   1      R1=R2=R3=R4=1;
+ 215   1      C1=C2=C3=C4=0;
+ 216   1      
+ 217   1      if(R1==0 && flag_keyboard==0)
+ 218   1      {
+ 219   2        lcd_data('2');//8
+ 220   2        tempo[index]='2';
+ 221   2        index++;
+ 222   2      }
+ 223   1      if(R1==0 && flag_keyboard==1)
+ 224   1      {
+ 225   2        Melodyplay(pitch_Db5, 250);
+ 226   2      }
+ 227   1      if(R2==0 && flag_keyboard==0)
+ 228   1      {
+ 229   2        lcd_data('6');//5
+ 230   2        tempo[index]='6';
+ 231   2        index++;
+ 232   2      }
+ 233   1      if(R2==0 && flag_keyboard==1)
+ 234   1      {
+ 235   2        Melodyplay(pitch_F5, 250);
+ 236   2      }
+ 237   1      if(R3==0 && flag_keyboard==0)
+ 238   1      {
+ 239   2        lcd_data('0');//2
+ 240   2        tempo[index]='0';
+C51 COMPILER V9.60.0.0   MAIN                                                              06/12/2021 18:11:41 PAGE 5   
+
+ 241   2        index++;
+ 242   2      }
+ 243   1      if(R3==0 && flag_keyboard==1)
+ 244   1      {
+ 245   2        Melodyplay(pitch_A5, 250);
+ 246   2      }
+ 247   1      //if(R4==0 && flag_keyboard==0)
+ 248   1      //{
+ 249   1      //  lcd_data('0');
+ 250   1      //  tempo[index]='0';
+ 251   1      //  index++;
+ 252   1      //}
+ 253   1      if(R4==0 && flag_keyboard==1)
+ 254   1      {
+ 255   2        Melodyplay(pitch_Db6, 250);
+ 256   2      }
+ 257   1      }
+ 258          
+ 259          void row_finder3() //Function for finding the row for column 3
+ 260          {
+ 261   1      R1=R2=R3=R4=1;
+ 262   1      C1=C2=C3=C4=0;
+ 263   1      
+ 264   1      if(R1==0 && flag_keyboard==0)
+ 265   1      {
+ 266   2        lcd_data('3');//9
+ 267   2        tempo[index]='3';
+ 268   2        index++;
+ 269   2      }
+ 270   1      if(R1==0 && flag_keyboard==1)
+ 271   1      {
+ 272   2        Melodyplay(pitch_D5, 250);
+ 273   2      }
+ 274   1      if(R2==0 && flag_keyboard==0)
+ 275   1      {
+ 276   2        lcd_data('7');//6
+ 277   2        tempo[index]='7';
+ 278   2        index++;
+ 279   2      }
+ 280   1      if(R2==0 && flag_keyboard==1)
+ 281   1      {
+ 282   2        Melodyplay(pitch_Gb5, 250);
+ 283   2      }
+ 284   1      //if(R3==0 && flag_keyboard==0)
+ 285   1      //{
+ 286   1        //lcd_data('3');
+ 287   1        //tempo[index]='3';
+ 288   1        //index++;
+ 289   1      //}
+ 290   1      if(R3==0 && flag_keyboard==1)
+ 291   1      {
+ 292   2        Melodyplay(pitch_Bb5, 250);
+ 293   2      }
+ 294   1      if(R4==0 && flag_keyboard==0)
+ 295   1      {
+ 296   2        //lcd_data('=');
+ 297   2        metro=1;
+ 298   2      }
+ 299   1      if(R4==0 && flag_keyboard==1)
+ 300   1      {
+ 301   2        Melodyplay(pitch_D6, 250);
+ 302   2      }
+C51 COMPILER V9.60.0.0   MAIN                                                              06/12/2021 18:11:41 PAGE 6   
+
+ 303   1      }
+ 304          
+ 305          void row_finder4() //Function for finding the row for column 4
+ 306          {
+ 307   1      R1=R2=R3=R4=1;
+ 308   1      C1=C2=C3=C4=0;
+ 309   1      
+ 310   1      if(R1==0 && flag_keyboard==0)
+ 311   1      {
+ 312   2        lcd_data('4');//a
+ 313   2        tempo[index]='4';
+ 314   2        index++;
+ 315   2      }
+ 316   1      if(R1==0 && flag_keyboard==1)
+ 317   1      {
+ 318   2        Melodyplay(pitch_Eb5, 250);
+ 319   2      }
+ 320   1      if(R2==0 && flag_keyboard==0)
+ 321   1      {
+ 322   2        lcd_data('8');//b
+ 323   2        tempo[index]='8';
+ 324   2        index++;
+ 325   2      }
+ 326   1      if(R2==0 && flag_keyboard==1)
+ 327   1      {
+ 328   2        Melodyplay(pitch_G5, 250);
+ 329   2      }
+ 330   1      //if(R3==0 && flag_keyboard==0)
+ 331   1      //lcd_data('C');
+ 332   1      if(R3==0 && flag_keyboard==1)
+ 333   1      {
+ 334   2        Melodyplay(pitch_B5, 250);
+ 335   2      }
+ 336   1      //if(R4==0 && flag_keyboard==0)
+ 337   1      //lcd_data('D');
+ 338   1      if(R4==0 && flag_keyboard==1)
+ 339   1      {
+ 340   2        Melodyplay(pitch_Eb6, 250);
+ 341   2      }
+ 342   1      }
+ 343          
+ 344          void metronome(int tempo)
+ 345          {
+ 346   1        MelodyTempo(tempo);
+ 347   1        Melodyplay(pitch_B5, eighthN);
+ 348   1        Melodyplay(pitch_P, eighthN);
+ 349   1        Melodyplay(pitch_B5, eighthN);
+ 350   1        Melodyplay(pitch_P, eighthN);
+ 351   1        Melodyplay(pitch_B5, eighthN);
+ 352   1        Melodyplay(pitch_P, eighthN);
+ 353   1        Melodyplay(pitch_B6, eighthN);
+ 354   1        Melodyplay(pitch_P, eighthN);
+ 355   1      }
+ 356          
+ 357          void main()
+ 358          {
+ 359   1          unsigned char lib[]="Library";
+ 360   1          unsigned char met[]="Metronome";
+ 361   1          unsigned char tan[]="Tanpura";
+ 362   1          unsigned char key[]="Keyboard";
+ 363   1          unsigned char cmd[]="Tempo:";
+ 364   1          unsigned int i,flag=0;
+C51 COMPILER V9.60.0.0   MAIN                                                              06/12/2021 18:11:41 PAGE 7   
+
+ 365   1          switch_library = 1;
+ 366   1          switch_metronome = 1;
+ 367   1          switch_tanpura = 1;
+ 368   1          switch_keyboard = 1;
+ 369   1          lcd_init();
+ 370   1          while(1)
+ 371   1          {    
+ 372   2              if(switch_library == 0)
+ 373   2              {
+ 374   3                lcd_cmd(0x01);
+ 375   3                //lcd_cmd(0x01);//clear display
+ 376   3                for(i=0;i<7;i++)
+ 377   3                  lcd_data(lib[i]);
+ 378   3                Saregama();
+ 379   3                delay_ms(1000);
+ 380   3              }
+ 381   2              if(switch_metronome == 0 && flag==0)//display msg
+ 382   2              {
+ 383   3                metro=0;index=0;
+ 384   3                flag_keyboard=0;
+ 385   3                lcd_cmd(0x01);
+ 386   3                //lcd_cmd(0x01);//clear display
+ 387   3                for(i=0;i<9;i++)
+ 388   3                  lcd_data(met[i]);
+ 389   3                lcd_cmd(0xC0);
+ 390   3                for(i=0;i<6;i++)
+ 391   3                  lcd_data(cmd[i]);
+ 392   3                flag=1;
+ 393   3              }
+ 394   2              if(switch_metronome == 0)
+ 395   2              {
+ 396   3                if(metro==0)
+ 397   3                {
+ 398   4                  delay_ms(200); 
+ 399   4                  C1=C2=C3=C4=1;
+ 400   4                  R1=R2=R3=R4=0;
+ 401   4                  if(C1==0)
+ 402   4                    row_finder1();
+ 403   4                  else if(C2==0)
+ 404   4                    row_finder2();
+ 405   4                  else if(C3==0)
+ 406   4                    row_finder3();
+ 407   4                  else if(C4==0)
+ 408   4                    row_finder4();
+ 409   4                }
+ 410   3                if(metro==1)
+ 411   3                {
+ 412   4                  int k=((tempo[2]-'0')+((tempo[1]-'0')*10)+((tempo[0]-'0')*100));
+ 413   4                  metronome(k);
+ 414   4                }
+ 415   3              }
+ 416   2              if(switch_tanpura == 0)
+ 417   2              {
+ 418   3                lcd_cmd(0x01);//clear display
+ 419   3                for(i=0;i<7;i++)
+ 420   3                  lcd_data(tan[i]);
+ 421   3                tanpura();
+ 422   3              }
+ 423   2              if(switch_keyboard == 0 && flag_keyboard==0)
+ 424   2              {
+ 425   3                lcd_cmd(0x01);//clear display
+ 426   3                for(i=0;i<8;i++)
+C51 COMPILER V9.60.0.0   MAIN                                                              06/12/2021 18:11:41 PAGE 8   
+
+ 427   3                  lcd_data(key[i]);
+ 428   3                flag_keyboard=1;
+ 429   3                flag=0;
+ 430   3                
+ 431   3              }
+ 432   2              if(switch_keyboard == 0)
+ 433   2              {
+ 434   3                delay_ms(150); 
+ 435   3                C1=C2=C3=C4=1;
+ 436   3                R1=R2=R3=R4=0;
+ 437   3                if(C1==0)
+ 438   3                  row_finder1();
+ 439   3                else if(C2==0)
+ 440   3                  row_finder2();
+ 441   3                else if(C3==0)
+ 442   3                  row_finder3();
+ 443   3                else if(C4==0)
+ 444   3                  row_finder4();
+ 445   3              }
+ 446   2          }
+ 447   1      
+ 448   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   1903    ----
+   CONSTANT SIZE    =     42    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     29      52
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

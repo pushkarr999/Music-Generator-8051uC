@@ -1,0 +1,4 @@
+".\Objects\main.obj",
+".\Objects\delay.obj" 
+TO ".\Objects\music_gen" 
+PRINT(".\Listings\music_gen.m51") RAMSIZE(256) 
