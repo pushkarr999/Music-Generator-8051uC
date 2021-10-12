@@ -1,6 +1,9 @@
 ## Programming your radio
 This guide will help you to provide wireless communication functionality to the robot. We use  _OpenMesh OM5P-AN_ or _OM5P-AC_ Radio for this purpose.
-![Radio](https://docs.wpilib.org/en/stable/_images/openmesh-radio-status-lights.png)
+
+  <img src="https://docs.wpilib.org/en/stable/_images/openmesh-radio-status-lights.png" alt="Radio"/>
+</p>
+
 Before programming your radio :
 * Disable all other network adapters except ethernet adapter.
 * Power the radio using 12V/2A output on the VRM. Alternatively, you can also use suitable DC adapter.
@@ -13,24 +16,43 @@ Before programming your radio :
 * Launch the program as administrator from the start menu or desktop stortcut.
 > If you need to locate the program, it is installed to `C:\Program Files (x86)\FRC Radio Configuration Utility`. For 32-bit machines the path is `C:\Program Files\FRC Radio Configuration Utility`.
 
-![Launch](https://docs.wpilib.org/en/stable/_images/radio-launch.png)
+<p align="center">
+  <img src="https://docs.wpilib.org/en/stable/_images/radio-launch.png" alt="launch the program"/>
+</p>
+
 * Allow the program to make changes if prompted.
 * Select the network interface, typlically for windows system you have to select "Local Area Network" or "Ethernet" from the drop-down. Click refresh if you don't see an interface.
-![interface](https://docs.wpilib.org/en/stable/_images/select-network-connection.png)
+<p align="center">
+  <img src="https://docs.wpilib.org/en/stable/_images/select-network-connection.png" alt="network_interface"/>
+</p>
+
 * Unplug the power from the radio and press the "Load Firmware" button. Plug the power when prompted.
 * Make sure OpenMesh radio is selected from the radio dropdown.
-![radio firmware](https://docs.wpilib.org/en/stable/_images/openmesh-firmware.png)
+<p align="center">
+  <img src="https://docs.wpilib.org/en/stable/_images/openmesh-firmware.png" alt="settings"/>
+</p>
+
 * Enter the Team Number and Robot Name. WPA Key will work as the password for the radio network.
 > The network SSID has the format "TeamNumber_RobotName".
 > Example - For team number "1402" and robot name "bot", SSID will be "1402_bot"
 
 * Click on Configure. This will start the configurayion of the network.
-![configure](https://docs.wpilib.org/en/stable/_images/config-in-progress.png)
+<p align="center">
+  <img src="https://docs.wpilib.org/en/stable/_images/config-in-progress.png" alt="inprogress"/>
+</p>
+
 * Once the configuration is complete click on "OK" and check for the network in the available networks.
-![done](https://docs.wpilib.org/en/stable/_images/config-completed.png)
+<p align="center">
+  <img src="https://docs.wpilib.org/en/stable/_images/config-completed.png" alt="success"/>
+</p>
+
 ## Troubleshooting tips
 - If `Bridge Programming fail` error occurs. Try :
-![error](https://docs.wpilib.org/en/stable/_images/config-errors.png)
+
+<p align="center">
+  <img src="https://docs.wpilib.org/en/stable/_images/config-errors.png" alt="program fail bridge"/>
+</p>
+
 	1. Load the firmware again.
 	2. Check if other network adaptors are disabled.
 	3. Disable the firewall temporarily.
